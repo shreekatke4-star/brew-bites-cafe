@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brew & Bites — Owner Dashboard</title>
+  <meta name="description" content="Brew & Bites owner dashboard — live orders, revenue tracking, and order management." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ════════════════════════════════
+       DASHBOARD LAYOUT
+    ════════════════════════════════ */
+    body { background: var(--cream-bg); min-height: 100vh; }
+
+    /* ── Login Screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, var(--brown-deep) 0%, #1a0800 100%);
+      padding: 24px;
+    }
+    .login-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-xl);
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .login-title {
+      color: var(--white);
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .login-sub {
+      color: var(--cream-mid);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-md);
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      color: var(--white);
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 12px;
+      text-align: left;
+      letter-spacing: 0;
+    }
+    .login-input.password-field {
+      text-align: center;
+      letter-spacing: 3px;
+    }
+    .login-input:focus { border-color: var(--accent); }
+    .login-input::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.35); }
+    .login-input.password-field::placeholder { letter-spacing: 1px; }
+    .login-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .login-btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+    .login-error {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    /* ── Dashboard Screen ── */
+    #dashboard-screen { display: none; }
+
+    /* Top Bar */
+    .topbar {
+      background: var(--brown-deep);
+      padding: 0 28px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .topbar-name {
+      color: var(--white);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .bell-btn {
+      padding: 8px 16px;
+      border-radius: 99px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: var(--white);
+      transition: all 0.2s;
+    }
+    .bell-btn.on {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.3);
+    }
+    .bell-btn:hover { background: rgba(255,255,255,0.2); }
+    .pending-pill {
+      padding: 8px 16px;
+      border-radius: 99px;
+      background: var(--accent);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.3s;
+    }
+    .pending-pill.has-orders {
+      animation: pulse 1.5s ease infinite;
+    }
+    .logout-btn {
+      padding: 8px 16px;
+      border-radius: 99px;
+      background: rgba(198,40,40,0.25);
+      border: 1px solid rgba(198,40,40,0.4);
+      color: #ff8a8a;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { background: rgba(198,40,40,0.4); }
+
+    /* Main Content */
+    .dashboard-main {
+      padding: 28px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Revenue Section */
+    .revenue-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .revenue-label {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .month-label {
+      font-size: 14px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    /* Revenue Cards */
+    .revenue-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 900px) { .revenue-cards { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .revenue-cards { grid-template-columns: 1fr; } }
+
+    .rev-card {
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .rev-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+    .rev-card-dark {
+      background: var(--brown-deep);
+      color: var(--white);
+    }
+    .rev-card-brown {
+      background: var(--brown-warm);
+      color: var(--white);
+    }
+    .rev-card-light {
+      background: var(--white);
+      color: var(--text-dark);
+      border: 1px solid var(--cream-mid);
+    }
+
+    .rev-card-label {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.75;
+      margin-bottom: 8px;
+    }
+    .rev-card-value {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .rev-card-dark .rev-card-value,
+    .rev-card-brown .rev-card-value { color: var(--cream-light); }
+    .rev-card-light .rev-card-value { color: var(--accent); }
+    .rev-card-sub {
+      font-size: 12px;
+      opacity: 0.65;
+    }
+
+    /* Tabs */
+    .tab-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .tab-btn {
+      padding: 10px 24px;
+      border-radius: 99px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border: 2px solid var(--cream-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--brown-deep);
+      color: var(--white);
+      border-color: var(--brown-deep);
+    }
+    .tab-btn:not(.active) {
+      background: var(--white);
+      color: var(--text-mid);
+    }
+    .tab-btn:not(.active):hover {
+      border-color: var(--brown-light);
+    }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-heading {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .firebase-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+    .dot-live {
+      width: 8px; height: 8px;
+      background: #4CAF50;
+      border-radius: 50%;
+      animation: pulse 1.5s ease infinite;
+    }
+
+    /* Orders Grid */
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    /* Order Card */
+    .order-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--cream-mid);
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    .order-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .order-card.status-pending { border-color: var(--cream-dark); }
+    .order-card.status-completed { border-color: rgba(46,125,50,0.3); background: #f8fff8; }
+    .order-card.status-cancelled { border-color: rgba(198,40,40,0.2); background: #fff8f8; opacity: 0.7; }
+
+    .order-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .order-table-no {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+    .order-time {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .order-customer-name {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+
+    .order-items-list { margin-bottom: 12px; }
+    .order-item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-mid);
+      margin-bottom: 4px;
+    }
+    .order-item-price { color: var(--accent); font-weight: 600; }
+
+    .order-note {
+      background: var(--cream-bg);
+      border-left: 3px solid var(--accent);
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: var(--text-mid);
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .order-total {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+    .order-status-badge {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-badge-pending { background: rgba(200,120,42,0.15); color: var(--accent); }
+    .status-badge-completed { background: rgba(46,125,50,0.15); color: var(--success); }
+    .status-badge-cancelled { background: rgba(198,40,40,0.15); color: var(--danger); }
+
+    .order-actions { display: flex; gap: 10px; }
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-complete {
+      background: var(--accent);
+      color: var(--white);
+    }
+    .btn-cancel {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    /* Empty / Loading */
+    .empty-orders {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .empty-orders-icon { font-size: 52px; margin-bottom: 16px; }
+    .empty-orders-text { font-size: 18px; font-weight: 600; color: var(--text-light); }
+    .empty-orders-sub  { font-size: 14px; color: var(--text-light); margin-top: 6px; }
+
+    .loading-spinner { margin: 60px auto; }
+
+    /* Past Orders Table */
+    .past-table-wrap { overflow-x: auto; }
+    .past-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .past-table th {
+      background: var(--brown-deep);
+      color: var(--cream-light);
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .past-table td {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--cream-mid);
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+    .past-table tr:last-child td { border-bottom: none; }
+    .past-table tr:hover td { background: var(--cream-bg); }
+
+    /* Notification audio cue (visual flash) */
+    @keyframes newOrderFlash {
+      0%, 100% { background: var(--white); }
+      50% { background: rgba(200,120,42,0.15); }
+    }
+    .order-card.new-flash {
+      animation: newOrderFlash 0.6s ease 3;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">☕</div>
+    <div class="login-title">Brew &amp; Bites</div>
+    <div class="login-sub">Owner Dashboard — Sign in to continue</div>
+
+    <input
+      type="email"
+      id="login-email"
+      class="login-input"
+      placeholder="owner@email.com"
+      autocomplete="email"
+      onkeydown="if(event.key==='Enter') document.getElementById('login-password').focus()"
+    />
+    <input
+      type="password"
+      id="login-password"
+      class="login-input password-field"
+      placeholder="••••••••"
+      autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') doLogin()"
+    />
+    <button class="login-btn" onclick="doLogin()" id="login-btn">
+      Access Dashboard
+    </button>
+    <div class="login-error hidden" id="login-error">
+      ❌ Wrong email or password. Try again.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     DASHBOARD SCREEN
+═══════════════════════════════════════ -->
+<div id="dashboard-screen">
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-icon">☕</div>
+      <span class="topbar-name">Brew &amp; Bites — Live Orders</span>
+    </div>
+    <div class="topbar-right">
+      <button class="bell-btn on" id="bell-btn" onclick="toggleBell()" aria-label="Toggle sound">
+        🔔 Bell On
+      </button>
+      <div class="pending-pill" id="pending-pill">0 Pending</div>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="dashboard-main">
+
+    <!-- Revenue Section -->
+    <div class="revenue-header">
+      <div class="revenue-label">Revenue</div>
+      <div class="month-label" id="month-label">—</div>
+    </div>
+
+    <div class="revenue-cards">
+      <div class="rev-card rev-card-dark">
+        <div class="rev-card-label">Monthly Revenue</div>
+        <div class="rev-card-value" id="stat-monthly">₹0</div>
+        <div class="rev-card-sub">Completed this month</div>
+      </div>
+      <div class="rev-card rev-card-brown">
+        <div class="rev-card-label">Today Revenue</div>
+        <div class="rev-card-value" id="stat-today">₹0</div>
+        <div class="rev-card-sub">Completed today</div>
+      </div>
+      <div class="rev-card rev-card-light">
+        <div class="rev-card-label">Pending Value</div>
+        <div class="rev-card-value" id="stat-pending-val">₹0</div>
+        <div class="rev-card-sub">Still preparing</div>
+      </div>
+      <div class="rev-card rev-card-light">
+        <div class="rev-card-label">Orders Today</div>
+        <div class="rev-card-value" id="stat-orders-today">0</div>
+        <div class="rev-card-sub">Total bills</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-live" onclick="switchTab('live')" aria-label="Live Orders">
+        Live Orders
+      </button>
+      <button class="tab-btn" id="tab-past" onclick="switchTab('past')" aria-label="Past Orders">
+        Past Orders
+      </button>
+    </div>
+
+    <!-- Live Orders Panel -->
+    <div id="panel-live">
+      <div class="section-header">
+        <div class="section-heading">Pending Orders</div>
+        <div class="firebase-badge">
+          <div class="dot-live"></div>
+          Firebase live
+        </div>
+      </div>
+      <div class="orders-grid" id="live-orders-grid">
+        <div class="loading-spinner loader"></div>
+      </div>
+    </div>
+
+    <!-- Past Orders Panel -->
+    <div id="panel-past" class="hidden">
+      <div class="section-header">
+        <div class="section-heading">Completed &amp; Cancelled Orders</div>
+        <div class="firebase-badge">
+          <div class="dot-live"></div>
+          Firebase live
+        </div>
+      </div>
+      <div class="past-table-wrap">
+        <table class="past-table" id="past-orders-table">
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="past-orders-body">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="dashboard.js"></script>
+</body>
+</html>
