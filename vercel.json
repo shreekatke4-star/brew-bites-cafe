@@ -1,13 +1,14 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
-  ],
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
+      "src": "**/*",
+      "use": "@vercel/static"
     }
+  ],
+  "routes": [
+    { "src": "/dashboard.html", "dest": "/dashboard.html" },
+    { "src": "/index.html",     "dest": "/index.html"     },
+    { "src": "/(.*)",           "dest": "/$1"             }
   ]
 }
