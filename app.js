@@ -288,17 +288,20 @@ window.goToCheckout = function () {
   }
   renderCheckoutSummary();
   showScreen("screen-checkout");
+  // Hide cart bar so it doesn't cover the Place Order button
+  document.getElementById("cart-bar").classList.add("hide");
 };
 
 window.goBack = function () {
   showScreen("screen-menu");
+  updateCartUI(); // restore cart bar visibility if items exist
 };
 
 window.orderMore = function () {
   cart = {};
   updateCartUI();
-  renderFeatured();           // Reset featured cards back to "+" buttons
-  renderMenu(activeCategory); // Reset all menu items back to "+" buttons
+  renderFeatured();
+  renderMenu(activeCategory);
   showScreen("screen-menu");
 };
 
